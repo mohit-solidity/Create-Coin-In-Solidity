@@ -1,6 +1,17 @@
     // SPDX-License-Identifier: MIT
     pragma solidity ^0.8.20;
-    contract BABACOIN {
+    interface coin {
+        function totalSupply() external view returns(uint);
+        function transfer(address to,uint amount) external returns(bool);
+        function balanceOf(address _address) external view returns(uint);
+        function approve(address to ,uint amount) external returns(bool);
+        function transferFrom(address from,address to,uint amount) external returns(bool);
+
+
+        event Transfer(address indexed from,address indexed  to,uint amount) ;
+        event Approval(address indexed owner,address indexed spender,uint256 value);
+    }
+    contract BABACOIN is coin {
         string public name;
         string public symbol;
         uint8 public decimals = 18;
@@ -19,8 +30,6 @@
         mapping(address=>mapping(address=>uint)) public allowance;
         event Buy(address indexed from,uint amount);
         event Withdraw(address indexed from,uint amount);
-        event Transfer(address indexed from,address indexed to,uint amount);
-        event Approval(address indexed from,address indexed to,uint amount);
         constructor(string memory _name,string memory _symbol,uint _supply){
             name = _name;
             symbol = _symbol;
@@ -81,7 +90,7 @@
             require(sellTime[msg.sender]<=block.timestamp,"Must Wait 2 Hours For Withdraw");
             require(Balance[msg.sender]>_amount,"Not Enough Balance");
             uint tokenamount = (_amount/(10**uint(decimals)))/rate;
-            uint fees = ((_amount/(10**uint(decimals)))/rate)*sellFee/100;
+            uint fees = tokenamount*sellFee/100;
             fee += fees;
             uint values = tokenamount - fees;
             require(address(this).balance>=values,"Not Enough Balance In The Pool");
@@ -112,4 +121,7 @@
             emit Transfer(from, to, amount);
             return true;
         }
+        receive() external payable {
+            revert("User buycoin()");
+         }
     }
